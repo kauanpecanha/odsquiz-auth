@@ -10,3 +10,4 @@ permissions:
 jobs:
   config:
     uses: kauanpecanha/odsquiz-workflows/.github/workflows/golang-ci-pipeline.yaml@master
+    
