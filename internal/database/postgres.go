@@ -8,7 +8,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"kauanpecanha/odsquiz-auth/internal/config"
+	"github.com/kauanpecanha/odsquiz-auth/internal/config"
 )
 
 func NewPostgresConnection(cfg *config.Config) (*gorm.DB, error) {
