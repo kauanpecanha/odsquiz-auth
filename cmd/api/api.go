@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/kauanpecanha/odsquiz-auth/internal/config"
-	"github.com/kauanpecanha/odsquiz-auth/internal/database"
-	"github.com/kauanpecanha/odsquiz-auth/internal/routes"
+	"github.com/kauanpecanha/odsquiz-auth/pkg/config"
+	"github.com/kauanpecanha/odsquiz-auth/pkg/database"
+	"github.com/kauanpecanha/odsquiz-auth/api/routes"
 )
 
 func main() {
