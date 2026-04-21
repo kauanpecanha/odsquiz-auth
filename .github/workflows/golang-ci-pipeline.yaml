@@ -9,5 +9,5 @@ permissions:
   contents: read
 jobs:
   config:
-    uses: kauanpecanha/odsquiz-workflows/.github/workflows/golang-ci-pipeline.yaml@master
+    uses: kauanpecanha/odsquiz-workflows/.github/workflows/golang-ci-pipeline.yaml@main
     
