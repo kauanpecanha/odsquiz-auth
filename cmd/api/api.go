@@ -30,8 +30,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer pgDb.Close()
-
+	
+	// Handle closing db connection
+	defer func() {
+		if err := pgDb.Close(); err != nil {
+			log.Printf("error closing database: %v", err)
+		}
+	}()
 	// Create new Fiber app instance
 	app := fiber.New(fiber.Config{
 		AppName: "ODS Quiz Auth Microservice",
