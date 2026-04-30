@@ -8,12 +8,20 @@ import (
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
+	"github.com/kauanpecanha/odsquiz-auth/internal/models"
 	"github.com/kauanpecanha/odsquiz-auth/pkg/config"
 )
 
+type Dbinstance struct {
+	Db *gorm.DB
+}
+
+var DB Dbinstance
+
 // NewPostgresConnection establishes a connection to the PostgreSQL database using GORM.
-func NewPostgresConnection(cfg *config.Config) (*gorm.DB, error) {
+func NewPostgresConnection(cfg *config.Config) {
 	// Build the database connection string from config
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -26,13 +34,20 @@ func NewPostgresConnection(cfg *config.Config) (*gorm.DB, error) {
 	)
 
 	// Open the database connection
-	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
-		return nil, err
+		log.Fatal("Failed to connect to database. \n", err)
 	}
 
-	// Log successful connection
-	log.Println("Successfull database connection")
+	// successfull message
+	log.Println("connected")
+	db.Logger = logger.Default.LogMode(logger.Info)
+	log.Println("running migrations")
+	db.AutoMigrate(&models.User{})
 
-	return db, nil
+	DB = Dbinstance{
+		Db: db,
+	}
 }

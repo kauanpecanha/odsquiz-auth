@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 
 	"github.com/kauanpecanha/odsquiz-auth/internal/routes"
 	"github.com/kauanpecanha/odsquiz-auth/pkg/config"
@@ -20,30 +21,22 @@ func main() {
 	}
 
 	// Establish connection to PostgreSQL database
-	db, err := database.NewPostgresConnection(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Get underlying database connection
-	pgDb, err := db.DB()
-	if err != nil {
-		log.Fatal(err)
-	}
+	database.NewPostgresConnection(cfg)
 	
-	// Handle closing db connection
-	defer func() {
-		if err := pgDb.Close(); err != nil {
-			log.Printf("error closing database: %v", err)
-		}
-	}()
 	// Create new Fiber app instance
 	app := fiber.New(fiber.Config{
 		AppName: "ODS Quiz Auth Microservice",
 	})
 
+	app.Use(cors.New())
+
 	// Set up API routes
 	routes.Setup(app)
+
+	app.Use(func(c fiber.Ctx) error {
+		// 404 "Not Found"
+		return c.SendStatus(fiber.StatusNotFound)
+	})
 
 	// Start the server on the configured port
 	log.Fatal(app.Listen(":" + cfg.Port))
