@@ -1,125 +1,94 @@
 package routes
 
 import (
-	"encoding/json"
-	"time"
-
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kauanpecanha/odsquiz-auth/internal/models"
+	"github.com/kauanpecanha/odsquiz-auth/pkg/database"
 )
 
 // setup function to config routes
 func Setup(app *fiber.App) {
-	
-	// sample users to simulate database
-	sampleUsers := []models.User{
-		{
-			Name:     "João Silva",
-			Email:    "joao.silva@example.com",
-			Password: "password123",
-		},
-		{
-			Name:     "Maria Santos",
-			Email:    "maria.santos@example.com",
-			Password: "password456",
-		},
-		{
-			Name:     "Pedro Oliveira",
-			Email:    "pedro.oliveira@example.com",
-			Password: "password789",
-		},
-	}
 
 	// root route
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, world!")
 	})
 
+		// route to create user
+	app.Post("/createUser", func(c fiber.Ctx) error {
+		user := new(models.User)
+		if user.ID == "" {
+			user.ID = uuid.NewString()
+		}
+		if err := c.Bind().Body(user); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(err.Error())
+		}
+
+		if result := database.DB.Db.Create(&user); result.Error != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(result.Error.Error())
+		}
+
+		return c.Status(fiber.StatusOK).JSON(user)
+	})
+
 	// get all users records route
 	app.Get("/getAllUsers", func(c fiber.Ctx) error {
-		return c.JSON(sampleUsers)
+		users := []models.User{}
+
+		if result := database.DB.Db.Find(&users); result.Error != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(result.Error.Error())
+		}
+
+		return c.Status(fiber.StatusOK).JSON(users)
 	})
 
 	// get a single user by its id route
 	app.Get("/getUserById/:id", func(c fiber.Ctx) error {
-		id := c.Params("id")
-		for _, user := range sampleUsers {
-			if user.ID == id {
-				return c.JSON(user)
-			}
-		}
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
-	})
+		user := models.User{}
 
-	// route to create user
-	app.Post("/createUser", func(c fiber.Ctx) error {
-		var newUser models.User
-		body := c.BodyRaw()
-		if len(body) == 0 {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "empty request body"})
-		}
-		if err := json.Unmarshal(body, &newUser); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		id, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON("invalid id")
 		}
 
-		if newUser.ID == "" {
-			newUser.ID = uuid.NewString()
+		if result := database.DB.Db.First(&user, id); result.Error != nil {
+			return c.Status(fiber.StatusNotFound).JSON(result.Error.Error())
 		}
 
-		sampleUsers = append(sampleUsers, newUser)
-		return c.Status(fiber.StatusCreated).JSON(sampleUsers)
+		return c.Status(fiber.StatusOK).JSON(user)
 	})
 
 	// update user attributes route
 	app.Patch("/updateUser/:id", func(c fiber.Ctx) error {
-		id := c.Params("id")
-		var payload map[string]any
-		body := c.BodyRaw()
-		if len(body) == 0 {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "empty request body"})
-		}
-		if err := json.Unmarshal(body, &payload); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		user := new(models.User)
+		if err := c.Bind().Body(user); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(err.Error())
 		}
 
-		for idx, user := range sampleUsers {
-			if user.ID != id {
-				continue
-			}
-
-			if name, ok := payload["name"].(string); ok {
-				sampleUsers[idx].Name = name
-			}
-			if email, ok := payload["email"].(string); ok {
-				sampleUsers[idx].Email = email
-			}
-			if password, ok := payload["password"].(string); ok {
-				sampleUsers[idx].Password = password
-			}
-
-			sampleUsers[idx].UpdatedAt = time.Now()
-			return c.JSON(sampleUsers[idx])
+		id, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON("invalid id")
 		}
 
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
+		if result := database.DB.Db.Model(&models.User{}).Where("id = ?", id).Updates(user); result.Error != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(result.Error.Error())
+		}
+
+		return c.Status(fiber.StatusOK).JSON("updated")
 	})
 
 	// delete user by id route
 	app.Delete("/deleteUser/:id", func(c fiber.Ctx) error {
-		id := c.Params("id")
-
-		for idx, user := range sampleUsers {
-			if user.ID == id {
-				deleted := user
-				sampleUsers = append(sampleUsers[:idx], sampleUsers[idx+1:]...)
-				return c.JSON(fiber.Map{
-					"message": "user deleted",
-					"user":    deleted,
-				})
-			}
+		id, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON("invalid id")
 		}
 
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
+		if result := database.DB.Db.Delete(&models.User{}, id); result.Error != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(result.Error.Error())
+		}
+
+		return c.Status(fiber.StatusOK).JSON("deleted")
 	})
 }
