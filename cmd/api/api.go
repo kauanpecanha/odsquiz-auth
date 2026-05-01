@@ -21,7 +21,10 @@ func main() {
 	}
 
 	// Establish connection to PostgreSQL database
-	database.NewPostgresConnection(cfg)
+	_, err = database.NewPostgresConnection(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// Create new Fiber app instance
 	app := fiber.New(fiber.Config{
