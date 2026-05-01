@@ -21,7 +21,7 @@ type Dbinstance struct {
 var DB Dbinstance
 
 // NewPostgresConnection establishes a connection to the PostgreSQL database using GORM.
-func NewPostgresConnection(cfg *config.Config) {
+func NewPostgresConnection(cfg *config.Config) (*gorm.DB, error) {
 	// Build the database connection string from config
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -45,9 +45,13 @@ func NewPostgresConnection(cfg *config.Config) {
 	log.Println("connected")
 	db.Logger = logger.Default.LogMode(logger.Info)
 	log.Println("running migrations")
-	db.AutoMigrate(&models.User{})
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		return nil, err
+	}
 
 	DB = Dbinstance{
 		Db: db,
 	}
+
+	return db, nil
 }
