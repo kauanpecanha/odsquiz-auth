@@ -2,6 +2,7 @@ package utils
 
 import (
 	"time"
+	"log"
 	
 	"github.com/kauanpecanha/odsquiz-auth/pkg/config"
 	
@@ -10,6 +11,9 @@ import (
 
 func CreateToken(userID string, email string) (string, error) {
 	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	secretKey := []byte(cfg.JWTSecret)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
 		jwt.MapClaims{ 
