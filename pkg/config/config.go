@@ -11,6 +11,7 @@ import (
 // Config holds the application configuration settings.
 type Config struct {
 	Port       string // Server port
+	JWTSecret  string // JWT Secret
 	DBHost     string // Database host
 	DBPort     string // Database port
 	DBUser     string // Database user
@@ -27,6 +28,7 @@ func Load() (*Config, error) {
 	// Create config struct with values from environment
 	cfg := &Config{
 		Port:       os.Getenv("PORT"),
+		JWTSecret:  os.Getenv("JWTSecret"),
 		DBHost:     os.Getenv("DB_HOST"),
 		DBPort:     os.Getenv("DB_PORT"),
 		DBUser:     os.Getenv("DB_USER"),
