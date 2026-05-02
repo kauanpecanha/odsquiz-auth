@@ -14,6 +14,7 @@ type UserRepository interface {
 	ReadUserByID(id string) (*models.User, error)
 	UpdateUser(user *models.User) (*models.User, error)
 	DeleteUser(id string) error
+	ReadUserByEmail(email string) (*models.User, error)
 }
 
 type repository struct {
@@ -90,4 +91,15 @@ func (r *repository) DeleteUser(id string) error {
 	}
 
 	return nil
+}
+
+func (r *repository) ReadUserByEmail(email string) (*models.User, error) {
+	var user models.User
+
+	err := r.DB.First(&user, "email = ?", email).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
