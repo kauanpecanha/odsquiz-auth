@@ -23,11 +23,11 @@ func Setup(app *fiber.App) {
 
 	// root route
 	app.Get("/", func(c fiber.Ctx) error { return c.SendString("Hello, world!") })
-
 	// app health verification handler
 	app.Get("/health", func(c fiber.Ctx) error { return c.SendString("ok") })
 
 	app.Post("/createUser", userHandler.CreateUser)
+	app.Post("/login", userHandler.LoginUser)
 	app.Get("/getAllUsers", userHandler.GetAllUsers)
 	app.Get("/getUserById/:id", userHandler.GetUserByID)
 	app.Patch("/updateUser/:id", userHandler.UpdateUser)

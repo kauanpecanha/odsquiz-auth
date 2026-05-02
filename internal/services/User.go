@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 	"github.com/kauanpecanha/odsquiz-auth/internal/models"
 	"github.com/kauanpecanha/odsquiz-auth/internal/repositories"
@@ -39,4 +41,22 @@ func (s *UserService) UpdateUser(user *models.User) (*models.User, error) {
 
 func (s *UserService) DeleteUser(id string) error {
 	return s.Repo.DeleteUser(id)
+}
+
+func (s *UserService) LoginUser(user *models.LoginUserRequest) (string, error) {
+	dbUser, err := s.Repo.ReadUserByEmail(user.Email)
+	if err != nil {
+		return "", errors.New("invalid credentials")
+	}
+
+	if !utils.CheckPasswordHash(user.Password, dbUser.Password) {
+		return "", errors.New("invalid credentials")
+	}
+
+	token, err := utils.CreateToken(dbUser.ID, dbUser.Email)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	_ "fmt"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kauanpecanha/odsquiz-auth/internal/models"
@@ -25,6 +27,24 @@ func (h *UserHandler) CreateUser(c fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(createdUser)
+}
+
+func (h *UserHandler) LoginUser(c fiber.Ctx) error {
+	user := new(models.LoginUserRequest)
+	if err := c.Bind().Body(user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
+	}
+
+	token, err := h.Service.LoginUser(user)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(
+			fiber.Map{"error": "invalid credentials"},
+		)
+	}
+
+	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+		"token": token,
+	})
 }
 
 // GetAllUsers handles GET /getAllUsers
